@@ -1,0 +1,437 @@
+/* Reseteo para eliminar márgenes predeterminados*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;    
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: hsl(0, 0%, 100%);
+    color: #000000;
+    min-height: 100vh;
+}
+
+#app {
+    max-width: 480px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    min-height: 100vh;
+}
+
+header {
+    background-color: #000000;
+    color: #ffffff;
+    padding: 16px 20px;
+}
+
+#header-titulo {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#tabs {
+    display: flex; /*flex hace que los botones se repartan en el espacio*/;
+}
+
+.tab {
+    flex: 1; /*cada botón ocupa el mismo espacio*/
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    font-size: 13px;
+    color: #888888;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+.tab.activo { /* pestaña activa resaltada*/
+    color: #ffffff;
+    background-color: #000000;
+    border: 1px solid #000000;    
+    font-weight: bold;
+}
+
+.seccion {
+    display: none;
+}
+
+.seccion.activo {
+    display: block;
+}
+
+.tarjeta {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.tarjeta-grid {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+/*Campos sección añadir*/
+.campo {
+    margin-bottom: 14px;
+}
+
+.campo label {
+    display: block;
+    font-size: 12px;
+    color: #888888;
+    margin-bottom: 4px;
+}
+
+.campo input,
+.campo select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    background-color: #fafafa;
+}
+
+.campo input:focus,
+.campo select:focus {
+    outline: none;
+    border-color: #1a1a1a;
+    background-color: #ffffff;
+}
+
+.botones-operacion {
+    display: flex;
+    gap: 8px;
+}
+
+.boton-operacion {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.boton-operacion.activo {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border-color: #1a1a1a;
+}
+
+#boton-guardar {
+    width: 100%;
+    padding: 12px;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+#boton-guardar:active {
+    opacity: 0.8;
+}
+
+#boton-cancelaredicion {
+    width: 100%;
+    padding: 12px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+.boton-borrar {
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.boton-borrar:hover {
+    background-color: #fff0f0;
+    color:#e63946;
+}
+
+.boton-editar {
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-left: 6px;
+}
+
+.boton-editar:hover {
+    background-color: #f0f4ff;
+    color:#1a73e8;
+}
+
+/*Movimientos en el historial*/
+.movimiento {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/*Último sin borde*/
+.movimiento:last-child{
+    border-bottom: none;
+}
+
+/* Parte izquierda*/
+.mov-info {
+    flex: 1;
+}
+
+.mov-concepto {
+    font-size: 14px;
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+.mov-detalle {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+}
+
+/*Parte derecha*/
+.mov-importe {
+    font-size: 15px;
+    font-weight: bold;
+    margin-left: 12px;
+}
+
+.mov-importe.ingreso { color: #2a9d5c; }
+.mov-importe.gasto   { color: #e63946; }
+.mov-importe.impuesto   { color: #e67e22; }
+
+/*Mensaje si no hay movimientos*/
+.vacio {
+    text-align: center;
+    padding: 2rem;
+    color: #aaaaaa;
+    font-size: 14px;
+}
+
+/*Fila con dos selects en paralelo*/
+.fila-filtros {
+    display: flex;
+    gap: 12px;
+}
+
+.fila-filtros.campo {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/*Métricas*/
+.metrica-label {
+    font-size: 12px;
+    color:#888888;
+    margin-bottom: 4px;
+}
+
+.metrica-valor {
+    font-size: 20px;
+    font-weight: bold;
+    color:#1a1a1a;
+}
+
+.metrica-verde  { color: #2a9d5c; }
+.metrica-rojo   { color: #e63946; }
+.metrica-naranja { color: #e67e22; }
+
+/*Titulo de cada sección dentro de tarjeta*/
+.seccion-titulo {
+    font-size: 11px;
+    color: #aaaaaa;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+
+.fila-detalle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+.fila-detalle-no {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.fila-detalle:last-child {
+    border-bottom: none;
+}
+
+.detalle-label { color: #555555; }
+.detalle-valor { font-weight: bold; }
+.detalle-naranja { color: #e67e22; }
+.detalle-rojo { color: #e63946; }
+.detalle-verde { color: #2a9d5c; }
+
+/*Botón cliente nuevo*/
+#boton-nuevocliente {
+    width: 100%;
+    padding: 12px;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+/*Botón cancelar*/
+.boton-cancelar {
+    flex: 1;
+    padding: 12px;
+    background-color: transparent;
+    color: #888888;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+/*Botón guardar cliente*/
+#boton-guardarcliente {
+    flex: 1;
+    padding: 12px;
+    background-color:  #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+
+/*Desplegable buscador clientes*/
+.desplegable-clientes {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #ffffff;
+    margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.desplegable-item {
+    padding: 10px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.desplegable-item:last-child {
+    border-bottom: none;
+}
+
+.desplegable-item:hover {
+    background-color: #f8f8f8;
+}
+
+.desplegable-item.cliente-nombre {
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+.desplegable-item.cliente-cif {
+    font-size: 12px;
+    color: #888888;
+    margin-top: 2px;
+}
+
+/*Cliente seleccionado*/
+.cliente-seleccionado {
+    background-color: #f0f4ff;
+    border: 1px solid #c0d0ff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+.cliente-seleccionado.cliente-quitar {
+    float: right;
+    cursor: pointer;
+    color: #888888;
+}
+
+.cliente-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+} 
+
+.cliente-item:last-child {
+    border-bottom: none;
+}
+
+.cliente-item-info.cliente-item-nombre {
+    font-size: 14px;
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+.cliente-item-info.cliente-item-detalle {
+    font-size: 12px;
+    color: #888888;
+    margin-top: 2px;
+}
+
+.cliente-item-botones {
+    display: flex;
+    gap: 6px;
+}
+
+/*Botón guardar configuración*/
+#boton-guardarconfig {
+    width: 100%;
+    padding: 12px;
+    background-color:  #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+}

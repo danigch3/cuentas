@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"> <!--  -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!--viewport evita zoom auto -->
+    <title>Cuentas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+
+    <header>
+      <div id="header-titulo">Cuentas</div>
+    </header>
+
+    <nav id="tabs">
+      <button class="tab activo" data-tab="resumen">Resumen</button>
+      <button class="tab" data-tab="añadir">Añadir</button>
+      <button class="tab" data-tab="historial">Historial</button>
+      <button class="tab" data-tab="clientes">Clientes</button>
+      <button class="tab" data-tab="config">Config</button>
+    </nav>
+
+    <!--Sección resumen-->
+    <section id="tab-resumen" class="seccion activo">
+      
+      <!--Selección año y trimestre-->
+      <div class="tarjeta">
+        <div class="fila-filtros">
+          <div class="campo">
+            <label for="sel-año">Año</label>
+            <select id="sel-año" onchange="cambiar_año()">
+            </select>
+          </div>
+          <div class="campo">
+            <label for="sel-trim">Trimestre</label>
+            <select id="sel-trim" onchange="render_resumen()">           
+              <option value="T1">T1 (Ene-Mar)</option>
+              <option value="T2">T2 (Abr-Jun)</option>
+              <option value="T3">T3 (Jul-Sep)</option>
+              <option value="T4">T4 (Oct-Dic)</option>
+              <option value="Año">Año Completo</option>   
+            </select>
+          </div>            
+        </div>
+      </div>
+
+      <div class="grid-2x2">
+        <div class="tarjeta-grid">
+          <div class="metrica-label">Ingresos</div>
+          <div class="metrica-verde" id="res-ingresos">-</div>
+        </div>
+        <div class="tarjeta-grid">
+          <div class="metrica-label">Cobrado neto</div>
+          <div class="metrica-verde" id="res-cobrado">-</div>
+        </div> 
+        <div class="tarjeta-grid">
+          <div class="metrica-label">Gastos</div>
+          <div class="metrica-rojo" id="res-gastos">-</div>
+        </div>
+        <div class="tarjeta-grid">
+          <div class="metrica-label">IVA neto</div>
+          <div class="metrica-naranja" id="res-iva">-</div>
+        </div> 
+        <div class="tarjeta-grid">
+          <div class="metrica-label">Beneficio neto</div>
+          <div class="metrica-verde" id="res-beneficio">-</div>
+        </div> 
+        <div class="tarjeta-grid">
+          <div class="metrica-label">Reserva</div>
+          <div id="res-total-reserva">-</div>
+        </div> 
+
+      </div>
+
+      <!--Detalle fiscal-->
+      <div class="tarjeta">
+        <div class="seccion-titulo">Detalle fiscal</div>
+        <div class="fila-detalle">
+          <span class="detalle-label">IRPF retenido</span>
+          <span class="detalle-naranja" id="res-irpf">-</span>
+        </div>
+        <div class="fila-detalle">
+          <span class="detalle-label">IVA repercutido</span>
+          <span class="detalle-valor" style="font-weight: normal; border-bottom: none;" id="res-ivarep">-</span>
+        </div>
+        <div class="fila-detalle">
+          <span class="detalle-label">IVA soportado</span>
+          <span class="detalle-valor" style="font-weight: normal" id="res-ivasop">-</span>
+        </div>
+        <div class="fila-detalle" id="res-mod130">
+        </div>
+        <div class="fila-detalle">
+          <span class="detalle-label">Modelo 303 estimado</span>
+          <span class="detalle-naranja" id="res-303">-</span>
+        </div>
+      </div>
+      
+      <!--Seguimiento IRPF trimestral-->
+      <div class="tarjeta">
+        <div class="seccion-titulo">Estimación Modelo 130</div>
+        <div id="res-seguimiento-irpf"></div>
+      </div>
+
+    </section>
+
+    <!--Sección añadir-->
+    <section id="tab-añadir" class="seccion">
+      <div class="tarjeta">
+        
+        <!-- Selector de tipo -->
+        <div class="campo">
+          <label>Operación</label>
+          <div class="botones-operacion">
+            <button class="boton-operacion activo" data-operacion="ingreso">Ingreso</button>
+            <button class="boton-operacion" data-operacion="gasto">Gasto</button>
+            <button class="boton-operacion" data-operacion="impuesto">Impuesto</button>
+          </div>
+        </div>
+
+        <div class="campo" id="campo-subtipo" style="display:none;">
+          <label for="inp-subtipo">Tipo</label>
+          <select id="inp-subtipo">
+            <option value="cuota">Cuota autónomo</option>
+            <option value="irpf_130">Modelo 130</option>
+            <option value="otros">Otros impuestos</option>
+          </select>
+        </div>
+
+        <!-- Concepto -->
+        <div class="campo">
+          <label for="inp-concepto">Concepto</label>
+          <input type="text" id="inp-concepto" placeholder="Ej: Factura cliente A" />
+        </div>
+
+        <div class="grid-2x2">
+          
+          <!-- Base Imponible -->
+          <div class="campo">
+            <label for="inp-base">Base imponible (€)</label>
+            <input type="number" id="inp-base" placeholder="0,00" step="0.01"/>
+          </div>
+
+          <!-- IVA -->
+          <div class="campo" id="campo-iva">
+            <label for="inp-iva">IVA (%)</label>
+            <select id="inp-iva">
+              <option value="21">21%</option>
+              <option value="10">10%</option>
+              <option value="4">4%</option>
+              <option value="0">0%</option>
+            </select>
+          </div>
+
+          <!-- IRPF -->
+          <div class="campo" id="campo-irpf">
+            <label for="inp-irpf">Retención (%)</label>
+            <select id="inp-irpf">
+              <option value="15">15%</option>
+              <option value="7">7%</option>
+              <option value="0">0%</option>
+            </select>
+          </div>
+
+          <!-- Fecha -->
+          <div class="campo">
+            <label for="ianp-fecha">Fecha</label>
+            <input type="date" id="inp-fecha"/>
+          </div>
+          
+          <!-- Número factura -->
+          <div class="campo" id="campo-num">
+            <label for="inp-num">Nº Factura</label>
+            <input type="text" id="inp-num"/>
+          </div>        
+
+        </div>
+
+        <!-- Cliente-->
+        <div class="campo" id="campo-cliente">
+          <label for="inp-cliente-buscar">Cliente</label>
+          <input type="text" id="inp-cliente-buscar" placeholder="Buscar cliente..."  oninput="filtrar_clientes()"/>
+          <div id="desplegable-clientes" class="desplegable-clientes" style="display: none;"></div>
+          <!--Campo oculto que guarda id del cliente seleccionado-->
+          <input type="hidden" id="inp-cliente-id"/>
+          <div id="cliente-seleccionado" class="cliente-seleccionado" style="display: none;"></div>
+        </div>
+
+        <!--Proveedor-->
+        <div class="campo" id="campo-cliente">
+          <label for="inp-proveedor">Proveedor</label>
+
+        </div>
+
+        <!--Amortización (oculto si no es gasto)-->
+        <div class="campo" id="campo-amortizable" style="display: none;">
+          <div style="display: flex; align-items: center; ">
+            <label for="inp-amortizable" style="margin-bottom: 0">Amortizable</label>
+            <input type="checkbox" id="inp-amortizable" onchange="activar_amortizacion()"/>
+          </div>
+        </div>
+        <div id="campos-amortizacion" style="display: none;">
+          <div class="grid-2x2">
+            <div class="campo">
+              <label for="inp-años-amort">Años de amortización</label>
+              <input type="number" id="inp-años-amort" placeholder="4" min="1" max="70"/>
+            </div>
+            <div class="campo">
+              <label for="inp-uso-profesional">% Uso profesional</label>
+              <input type="number" id="inp-uso-profesional" placeholder="100" min="1" max="100" value="100"/> 
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Botón guardar -->
+        <div style="display: flex; gap: 8px;">
+          <button id="boton-guardar">Guardar movimiento</button>
+          <button id="boton-cancelaredicion" style="display: none;" onclick="cancelar_edicionmovimiento()">Cancelar</button>
+        </div>
+      
+      </div>
+
+    </section>
+
+    <!--Sección historial-->
+    <section id="tab-historial" class="seccion">
+      <!-- Filtros -->
+      <div class="tarjeta">
+        <div class="campo">
+          <label for="filtro-operacion">Operación</label>
+          <select id="filtro-operacion" onchange="render_historial()">
+            <option value="">Todo</option>
+            <option value="ingreso">Ingresos</option>
+            <option value="gasto">Gastos</option>
+            <option value="impuesto">Impuesto</option>
+          </select> 
+        </div>
+        <div class="campo">
+          <label for="filtro-trim">Trimestre</label>
+          <select id="filtro-trim" onchange="render_historial()">
+            <option value="">Año</option>
+            <option value="T1">T1 (Ene-Mar)</option>
+            <option value="T2">T2 (Abr-Jun)</option>
+            <option value="T3">T3 (Jul-Sep)</option>
+            <option value="T4">T4 (Oct-Dic)</option>
+          </select> 
+        </div>
+      </div>
+      
+      <!--Lista de movimientos-->
+      <div id="lista-movimientos"></div>
+
+    </section>
+
+
+    <!--Sección clientes-->
+    <section id="tab-clientes" class="seccion">
+      
+      <!--Botón para abrir formulario-->
+      <button id="boton-nuevocliente" onclick="mostrar_formulariocliente()">+ Nuevo cliente</button>
+
+      <!--Formulario, oculto por defecto-->
+      <div class="tarjeta" id="form-cliente" style="display:none;">
+        <div class="campo">
+          <label for="cliente-nombre">Nombre/Razón social*</label>
+          <input type="text" id="cliente-nombre" placeholder="Empresa S.L."/>
+        </div>
+        <div class="campo">
+          <label for="cliente-cif">CIF/NIF*</label>
+          <input type="text" id="cliente-cif" placeholder="B12345678"/>
+        </div>
+        <div class="campo">
+          <label for="cliente-direccion">Dirección</label>
+          <input type="text" id="cliente-direccion"/>
+        </div>
+        <div class="fila-filtros">
+          <div class="campo">
+            <label for="cliente-cp">Código postal</label>
+            <input type="text" id="cliente-cp"/>
+          </div>
+          <div class="campo">
+            <label for="cliente-ciudad">Ciudad</label>
+            <input type="text" id="cliente-ciudad"/>
+          </div>
+        </div>
+        <div class="campo">
+           <label for="cliente-email">Email</label>
+           <input type="text" id="cliente-email"/>
+         </div>
+         <div class="campo">
+           <label for="cliente-tlf">Teléfono</label>
+           <input type="text" id="cliente-tlf"/>
+         </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="boton-guardarcliente" onclick="guardar_cliente()">Guardar cliente</button>
+          <button class="boton-cancelar" onclick="cancelar_formulariocliente()">Cancelar</button>
+        </div>
+      </div>
+
+      <!--Lista de clientes-->
+      <div id="lista-clientes"></div>
+
+    </section>
+
+    <section id="tab-config" class="seccion">
+      <div class="tarjeta">
+        <div class="seccion-titulo">Datos fiscales</div>
+        <div class="campo">
+          <label for="config-cuota">Cuota SS mensual</label>
+          <input type="number" id="config-cuota" step="0.01"/>
+        </div>
+        <div class="campo">
+          <label for="config-irpf">% IRPF habitual</label>
+          <select id="config-irpf">
+            <option value="15">15%</option>
+            <option value="7">7%</option>
+            <option value="0">0%</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="tarjeta">
+        <div class="seccion-titulo">Nuevo autónomo</div>
+        <div class="config-row fila-detalle">
+          <span class="detalle-label">Soy nuevo autónomo</span>
+          <input type="checkbox" id="config-nuevoautonomo" onchange="guardar_config()"/>
+        </div>
+        <div class="campo" id="campo-añoinicio" style="display: none;">
+          <label for="config-añoinicio">Año de inicio de actividad</label>
+          <input type="number" id="config-añoinicio" onchange="guardar_config()"/>
+        </div>
+        <div style="font-size: 11px; color: #aaaaaa; margin-top: 8px;">
+          Solo afecta al año actual y posteriores. Los ejercicios anteriores no se modifican.
+        </div>
+      </div>
+
+      <button id="boton-guardarconfig" onclick="guardar_config()">Guardar configuración</button>
+      <div class="tarjeta" style="margin-top: 12px;">
+        <div class="seccion-titulo">Datos</div>
+        <button class="boton-cancelar" onclick="limpiar_datos()">Borrar todos los datos</button>
+      </div>
+
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
