@@ -439,8 +439,6 @@ function render_mod130(año) {
     const color_irpf = irpf_trimestre > 0 ? '#e63946' : '#2a9d5c'
     const color_beneficio = d.total_beneficio < 0 ? '#e63946' : '#2a9d5c'
     
-    
-    
     const texto_pago = (irpf_teorico - irpf_adelantado) < 0
         ? `0 € (arrastre ${formato_euro(Math.abs(irpf_teorico - irpf_adelantado))})` : formato_euro(irpf_trimestre)
 
@@ -1015,3 +1013,7 @@ años_disponibles()
 render_historial()
 render_resumen()
 cargar_config()
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+}
