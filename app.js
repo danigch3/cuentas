@@ -156,6 +156,14 @@ function calcular_datos (movs, trim, año) {
         T4: new Date(parseInt(año), 11, 31),
     }[trim]    
 
+    //Primer día del trimestre
+    const primer_dia_trim = {
+        T1: new Date(parseInt(año), 0, 1),
+        T2: new Date(parseInt(año), 3, 1),
+        T3: new Date(parseInt(año), 6, 1),
+        T4: new Date(parseInt(año), 9, 1),
+    }[trim]    
+
     //Último mes del trimestre
     const ultimo_mes = {T1: 3, T2: 6, T3: 9, T4: 12, año: 12}[trim]
 
@@ -164,7 +172,7 @@ function calcular_datos (movs, trim, año) {
     //Gastos totales para el cálculo del IVA
     const gastos = movs.filter(function(m) {return m.operacion === 'gasto'})
     const gastos_directos = movs.filter(function(m) {return m.operacion === 'gasto' && !m.amortizable})
-    const gastos_amortizables = movs.filter(function(m) {return m.operacion === 'gasto' && m.amortizable})
+    const gastos_amortizables = movimientos.filter(function(m) {return m.operacion === 'gasto' && m.amortizable})
     const impuestos = movs.filter(function (m) {return m.operacion === 'impuesto'})
 
     //Sumo los elementos de cada array filtrado
@@ -182,12 +190,13 @@ function calcular_datos (movs, trim, año) {
 
         //La fecha que cojo para calcular la amortizacion hasta el trimestre seleccionado es la más pequeña entre el fin del trimestre o el fin de la amortización
         const fecha_fin = new Date(Math.min(ultimo_dia_trim, fin_amortizacion)) 
+        const fecha_inicio = new Date(Math.max(primer_dia_trim, fecha_compra))
 
         //Si la fecha del trimestre es anterior a la compra, no considerar
         if (fecha_compra > fecha_fin) {return acc}
 
         //La amortización será la amortización diaria por los días transcurridos hasta la fecha elegida para el calculo
-        const dias = Math.floor((fecha_fin - fecha_compra) / (24 * 60 * 60 * 1000))
+        const dias = Math.floor((fecha_fin - fecha_inicio) / (24 * 60 * 60 * 1000))
         
         return acc + dias * amortizacion_diaria 
     },0)
