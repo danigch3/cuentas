@@ -53,7 +53,7 @@ header {
 
 .seccion {
     display: none;
-    padding: 6px;
+    padding: 12px;
 }
 
 .seccion.activo {
