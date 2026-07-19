@@ -13,6 +13,7 @@ self.addEventListener('install', function(e) {
       return cache.addAll(ARCHIVOS)
     })
   )
+  self.skipWaiting()
 })
 
 // Activación — limpia cachés antiguos
@@ -25,13 +26,24 @@ self.addEventListener('activate', function(e) {
       )
     })
   )
+  self.clients.claim()
 })
 
-// Fetch — sirve desde caché si no hay internet
+// Fetch — intenta red primero, caché si falla
 self.addEventListener('fetch', function(e) {
   e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      return cached || fetch(e.request)
-    })
+    fetch(e.request)
+      .then(function(respuesta) {
+        // Si hay internet, actualiza la caché con la versión nueva
+        const copia = respuesta.clone()
+        caches.open(CACHE).then(function(cache) {
+          cache.put(e.request, copia)
+        })
+        return respuesta
+      })
+      .catch(function() {
+        // Si no hay internet, sirve desde caché
+        return caches.match(e.request)
+      })
   )
 })
