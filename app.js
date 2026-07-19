@@ -157,12 +157,20 @@ function calcular_datos (movs, trim, año) {
     }[trim]    
 
     //Primer día del trimestre
-    const primer_dia_trim = {
-        T1: new Date(parseInt(año), 0, 1),
-        T2: new Date(parseInt(año), 3, 1),
-        T3: new Date(parseInt(año), 6, 1),
-        T4: new Date(parseInt(año), 9, 1),
-    }[trim]    
+    const fecha_mas_antigua = movs.reduce(function(min, m) {
+        const fecha = new Date(m.fecha)
+        return fecha < min ? fecha : min
+    }, new Date(ultimo_dia_trim))
+
+    const primer_dia_trim = new Date(
+        fecha_mas_antigua.getFullYear(),
+        fecha_mas_antigua.getMonth(),
+        1
+    )
+  
+    console.log(primer_dia_trim),
+    console.log(ultimo_dia_trim)
+
 
     //Último mes del trimestre
     const ultimo_mes = {T1: 3, T2: 6, T3: 9, T4: 12, año: 12}[trim]
