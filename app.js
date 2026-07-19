@@ -118,7 +118,7 @@ function cambiar_año() {
     }
 
     //Actualizar resumen
-    render_resumen
+    render_resumen()
 }
 
 function años_disponibles() {
