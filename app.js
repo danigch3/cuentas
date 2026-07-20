@@ -154,6 +154,7 @@ function calcular_datos (movs, trim, año) {
         T2: new Date(parseInt(año), 5, 30),
         T3: new Date(parseInt(año), 8, 30),
         T4: new Date(parseInt(año), 11, 31),
+        Año: new Date(parseInt(año), 11, 31),
     }[trim]    
 
     //Primer día del trimestre
@@ -162,15 +163,16 @@ function calcular_datos (movs, trim, año) {
         return fecha < min ? fecha : min
     }, new Date(ultimo_dia_trim))
 
+    if (fecha_mas_antigua.getMonth() <= 2) {fecha_mas_antigua.setMonth(0)
+        } else if (fecha_mas_antigua.getMonth() <= 5) {fecha_mas_antigua.setMonth(3)
+        } else if (fecha_mas_antigua.getMonth() <= 8) {fecha_mas_antigua.setMonth(6)
+        } else {fecha_mas_antigua.setMonth(9)}
+
     const primer_dia_trim = new Date(
         fecha_mas_antigua.getFullYear(),
         fecha_mas_antigua.getMonth(),
         1
     )
-  
-    console.log(primer_dia_trim),
-    console.log(ultimo_dia_trim)
-
 
     //Último mes del trimestre
     const ultimo_mes = {T1: 3, T2: 6, T3: 9, T4: 12, año: 12}[trim]
@@ -217,8 +219,6 @@ function calcular_datos (movs, trim, año) {
     //Beneficio acumulado
     const total_beneficio = total_ingresos - total_gastos
 
-
-
     const mod130_real = impuestos
         .filter(function(m) {return m.subtipo === 'irpf_130' && new Date(m.fecha).getMonth() + 1 === ultimo_mes})
         .reduce(function(acc, m) {return acc + m.base}, 0)
@@ -239,91 +239,9 @@ function calcular_datos (movs, trim, año) {
         total_gastos,
         irpf_retenido,
         total_beneficio,
-        mod130_real
-    }
-}
+        mod130_real,
+        ultimo_mes
 
-function calcular_trim(año, trim, arrastre, solo) {
-    const orden = ['T1', 'T2', 'T3', 'T4']
-
-    //Acumulado desde T1 al trimestre seleccionado
-    const hasta_trim = movimientos.filter(function(m) {
-        if (!m.fecha) return false
-        const año_mov = new Date(m.fecha).getFullYear().toString()
-        if (año_mov !== año) return false
-        return orden.indexOf(getTrimestre(m.fecha)) <= orden.indexOf(trim)
-    })
-
-    //Solo el de este trimestre
-    const este_trim = movimientos.filter(function(m) {
-        if (!m.fecha) return false
-        const año_mov = new Date(m.fecha).getFullYear().toString()
-        return año_mov === año && getTrimestre(m.fecha) === trim
-    })
-
-    const ingresos_acumulados = hasta_trim.filter(function(m) {return m.operacion === 'ingreso'}).reduce(function(acc,m) {return acc + m.base}, 0)
-    const gastos_acumulados = hasta_trim.filter(function(m) {return m.operacion === 'gasto' && !m.amortizable}).reduce(function(acc,m) {return acc + m.base}, 0)
-    const cuota_acumuladas = hasta_trim.filter(function(m) {return m.operacion === 'impuesto' && m.subtipo === 'cuota'}).reduce(function(acc,m) {return acc + m.base}, 0)
-
-    //Último día del trimestre actual
-    const ultimo_dia_trim = {
-        T1: new Date(parseInt(año), 2, 31),
-        T2: new Date(parseInt(año), 5, 30),
-        T3: new Date(parseInt(año), 8, 30),
-        T4: new Date(parseInt(año), 11, 31),
-    }[trim]            
-
-    //Amortizaciones acumuladas
-    const amortizacion_acumulada = movimientos.reduce(function(acc, m) {
-        if (!m.amortizable || !m.fecha || !m.años_amort) return acc
-
-        const fecha_compra = new Date(m.fecha)
-        const uso = (m.uso_profesional || 100) / 100
-        const amortizacion_diaria= m.base * uso / m.años_amort / 365
-
-        //Fin amortización
-        const fin_amortizacion = new Date(fecha_compra)
-        fin_amortizacion.setFullYear(fin_amortizacion.getFullYear() + m.años_amort)
-        const fecha_fin = new Date(Math.min(ultimo_dia_trim, fin_amortizacion))
-
-        if (fecha_compra > ultimo_dia_trim) return acc
-
-        //Días pasados tras compra
-        const dias = Math.floor((fecha_fin - fecha_compra) / (1000*60*60*24))
-
-        return acc + amortizacion_diaria * dias
-    }, 0)
-
-    //Retenciones acumuladas
-    const retenciones_acumuladas = hasta_trim.filter(function(m) {return m.operacion === 'ingreso'}).reduce(function(acc, m) {return acc + m.base * m.irpf/100}, 0)
-
-    //Pagos modelo 130 de trimestres anteriores
-    const m130_anteriores = movimientos.filter(function(m) {
-        if (!m.fecha) return false
-        const año_mov = new Date(m.fecha).getFullYear().toString()
-        if (año_mov !== año) return false
-        return m.subtipo === 'irpf_130' && orden.indexOf(getTrimestre(m.fecha)) < orden.indexOf(trim)
-    }).reduce(function(acc,m) {return acc + m.base}, 0)
-
-
-    //Beneficio acumulado
-    const beneficio_acumulado = ingresos_acumulados - gastos_acumulados - cuota_acumuladas - amortizacion_acumulada
-
-    //IRPF teórico acumulado
-    const irpf_teorico = Math.max(0, beneficio_acumulado*0.2)
-
-    //IRPF adelantado
-    const irpf_adelantado = retenciones_acumuladas + m130_anteriores + arrastre
-
-    //IRPF del trimestre
-    const irpf_calculado = irpf_teorico - irpf_adelantado
-
-    nuevo_arrastre = irpf_calculado < 0 ? Math.abs(irpf_calculado) : 0
-
-    return {
-        m130_anteriores,
-        irpf_adelantado,
-        arrastre: nuevo_arrastre
     }
 }
 
@@ -358,12 +276,9 @@ function render_resumen() {
     //Cobrado neto
     const cobrado_neto = d.total_ingresos - d.irpf_retenido
 
-    //Último mes del trimestre
-    const ultimo_mes = {T1: 3, T2: 6, T3: 9, T4: 12, año: 12}[trim]
-
     //Cuota pagada el último mes del trimestre para el cálculo de la reserva
     const cuota_reserva = d.impuestos
-        .filter(function(m) {return m.subtipo === 'cuota' && new Date(m.fecha).getMonth() + 1 === ultimo_mes})
+        .filter(function(m) {return m.subtipo === 'cuota' && new Date(m.fecha).getMonth() + 1 === d.ultimo_mes})
         .reduce(function(acc, m) {return acc + m.base}, 0)
 
     const mod130_estimado = Math.max(0, d.total_beneficio * 0.2 - d.irpf_retenido)
@@ -422,13 +337,6 @@ function render_mod130(año) {
     const hasta_indice = orden.indexOf(trim_actual)
     let arrastre = 0
 
-    //Cálculo de arrastre de trimestres anteriores
-    for (let i=0; i < hasta_indice; i++) {
-        const trim = orden[i]
-        const data = calcular_trim(año, trim, arrastre)
-        arrastre = data.arrastre
-    }
-
     //Coger todos los movimientos que ha habido este año hasta este trimestre
     const movs = movimientos.filter(function(m) {
         if (!m.fecha) return false
@@ -439,7 +347,6 @@ function render_mod130(año) {
 
     const d = calcular_datos(movs, trim_actual, año)
 
-
     //Pagos modelo 130 de trimestres anteriores
     const m130_anteriores = movs.filter(function(m) {
         return m.subtipo === 'irpf_130' && orden.indexOf(getTrimestre(m.fecha)) < orden.indexOf(trim_actual)
@@ -448,7 +355,6 @@ function render_mod130(año) {
     const irpf_adelantado = d.irpf_retenido + m130_anteriores + arrastre 
 
     //Mostrar solo trimestre seleccionado
-    const data = calcular_trim(año, trim_actual, arrastre)
     const reduccion = get_reduccion(año)
     const base_reducida = d.total_beneficio * reduccion
     const irpf_teorico = Math.max(0, base_reducida * 0.2)
@@ -481,7 +387,7 @@ function render_mod130(año) {
             <span class="detalle-naranja">${formato_euro(d.total_cuota)}</span>
         </div>
         <div class="fila-detalle-no">
-            <span class="detalle-label">Beneficio acumulado</span>
+            <span class="detalle-label">Rendimiento neto</span>
             <span class="detalle-valor" style="color:${color_beneficio}; border-bottom: none">${formato_euro(d.total_beneficio)}</span>
         </div>
         <div style="border-top: 1.5px solid #e0e0e0; margin: 2px 0;"></div>
@@ -491,7 +397,7 @@ function render_mod130(año) {
         </div>    
         <div class="fila-detalle-no">
             <span class="detalle-label">Adelantado</span>
-            <span class="detalle-valor">${formato_euro(data.irpf_adelantado)}</span>
+            <span class="detalle-valor">${formato_euro(irpf_adelantado)}</span>
         </div>
         <div class="fila-detalle" style="border-top: 3px solid #e0e0e0; margin-top: 2px; padding-top: 8px;">
             <span class="detalle-label" style="font-weight:bold;">Modelo 130 ${d.mod130_real > 0 ? 'presentado' : '(estimado)'}</span>
@@ -527,33 +433,40 @@ botones_operacion.forEach(function(boton){
         })
         boton.classList.add('activo')
 
-        // Mostrar irpf e iva según acción
-        if (operacion_actual === 'ingreso') {
-            document.getElementById('campo-irpf').style.display = 'block'
-            document.getElementById('campo-iva').style.display = 'block'
-            document.getElementById('campo-num').style.display = 'block'
-            document.getElementById('campo-cliente').style.display = 'block'
-            document.getElementById('campo-subtipo').style.display = 'none'
-            document.getElementById('campo-amortizable').style.display = 'none'
-
-        } else if (operacion_actual === 'gasto') {
-            document.getElementById('campo-irpf').style.display = 'none'
-            document.getElementById('campo-iva').style.display = 'block'
-            document.getElementById('campo-num').style.display = 'block'
-            document.getElementById('campo-cliente').style.display = 'block'
-            document.getElementById('campo-subtipo').style.display = 'none'
-            document.getElementById('campo-amortizable').style.display = 'block'
-
-        } else {
-            document.getElementById('campo-irpf').style.display = 'none'
-            document.getElementById('campo-iva').style.display = 'none'
-            document.getElementById('campo-num').style.display = 'none'
-            document.getElementById('campo-cliente').style.display = 'none'
-            document.getElementById('campo-subtipo').style.display = 'block' 
-            document.getElementById('campo-amortizable').style.display = 'none'           
-        }
+       mostrar_campos()
     })
 })
+
+//Mostrar campos según movimiento a añadir
+function mostrar_campos(){
+    if (operacion_actual === 'ingreso') {
+        document.getElementById('campo-irpf').style.display = 'block'
+        document.getElementById('campo-iva').style.display = 'block'
+        document.getElementById('campo-num').style.display = 'block'
+        document.getElementById('campo-cliente').style.display = 'block'
+        document.getElementById('campo-subtipo').style.display = 'none'
+        document.getElementById('campo-amortizable').style.display = 'none'
+        document.getElementById('inp-base').value = ''
+
+    } else if (operacion_actual === 'gasto') {
+        document.getElementById('campo-irpf').style.display = 'none'
+        document.getElementById('campo-iva').style.display = 'block'
+        document.getElementById('campo-num').style.display = 'block'
+        document.getElementById('campo-cliente').style.display = 'block'
+        document.getElementById('campo-subtipo').style.display = 'none'
+        document.getElementById('campo-amortizable').style.display = 'block'
+        document.getElementById('inp-base').value = ''
+
+    } else {
+        document.getElementById('campo-irpf').style.display = 'none'
+        document.getElementById('campo-iva').style.display = 'none'
+        document.getElementById('campo-num').style.display = 'none'
+        document.getElementById('campo-cliente').style.display = 'none'
+        document.getElementById('campo-subtipo').style.display = 'block' 
+        document.getElementById('campo-amortizable').style.display = 'none'
+        autocompletar_cuota()           
+    }
+}
 
 // Función para guardar movimiento
 document.getElementById('boton-guardar').addEventListener('click',function(){
@@ -618,6 +531,14 @@ document.getElementById('boton-guardar').addEventListener('click',function(){
     años_disponibles()
 
     // Limpiar formulario
+    limpiar_movimiento()
+
+    // Avisar usuario
+    alert('Guardado')
+    render_historial()
+})
+
+function limpiar_movimiento() {
     document.getElementById('inp-concepto').value = ''
     document.getElementById('inp-base').value = ''
     document.getElementById('inp-num').value = ''
@@ -626,12 +547,7 @@ document.getElementById('boton-guardar').addEventListener('click',function(){
     document.getElementById('campos-amortizacion').style.display = 'none'
     document.getElementById('inp-años-amort').value = ''
     document.getElementById('inp-uso-profesional').value = '100'
-
-    // Avisar usuario
-    alert('Guardado')
-    render_historial()
-})
-
+}
 
 // Dibuja el historial en pantalla
 function render_historial() {
@@ -676,7 +592,7 @@ function render_historial() {
             <div class="movimiento">
                 <div class="mov-info">
                     <div class="mov-concepto">${mov.concepto}</div>
-                    <div class="mov-detalle">${fecha_formateada(mov.fecha)} · ${etiqueta} · ${getTrimestre(mov.fecha)}</div>
+                    <div class="mov-detalle">${fecha_formateada(mov.fecha)} · ${etiqueta} · ${mov.num}</div>
                 </div>
                 <div class="mov-importe ${mov.operacion}">
                     ${signo}${mov.base.toFixed(2)} €
@@ -724,7 +640,12 @@ function editar_movimiento(id) {
     document.getElementById('inp-base').value     = mov.base
     document.getElementById('inp-fecha').value    = mov.fecha
     document.getElementById('inp-num').value      = mov.num || ''
-    document.getElementById('inp-cliente-buscar').value  = mov.cliente || ''
+    if (mov.clienteId) {
+        seleccionar_cliente(parseInt(mov.clienteId))
+    } else {
+        quitar_cliente()
+    }
+
     document.getElementById('inp-iva').value      = mov.iva
     document.getElementById('inp-irpf').value     = mov.irpf
     document.getElementById('inp-amortizable').checked = mov.amortizable
@@ -738,7 +659,6 @@ function editar_movimiento(id) {
     document.getElementById('inp-uso-profesional').value = mov.uso_profesional
     document.getElementById('inp-subtipo').value = mov.subtipo
 
-
     //Activa el botón de tipo de operación correcto
     operacion_actual = mov.operacion
     botones_operacion.forEach(function(b){
@@ -746,33 +666,11 @@ function editar_movimiento(id) {
         if (b.dataset.operacion === mov.operacion) b.classList.add('activo')      
     })
 
-    //Muestra campos según la operación
-     if (mov.operacion === 'ingreso') {
-        document.getElementById('campo-irpf').style.display = 'block'
-        document.getElementById('campo-iva').style.display = 'block'
-        document.getElementById('campo-num').style.display = 'block'
-        document.getElementById('campo-cliente').style.display = 'block'
-        document.getElementById('campo-subtipo').style.display = 'none'
-        document.getElementById('campo-amortizable').style.display = 'none'
-    } else if (mov.operacion === 'gasto') {
-        document.getElementById('campo-irpf').style.display = 'none'
-        document.getElementById('campo-iva').style.display = 'block'
-        document.getElementById('campo-num').style.display = 'block'
-        document.getElementById('campo-cliente').style.display = 'block'
-        document.getElementById('campo-subtipo').style.display = 'none'
-        document.getElementById('campo-amortizable').style.display = 'block'
-    } else {
-        document.getElementById('campo-irpf').style.display = 'none'
-        document.getElementById('campo-iva').style.display = 'none'
-        document.getElementById('campo-num').style.display = 'none'
-        document.getElementById('campo-cliente').style.display = 'none'     
-        document.getElementById('campo-subtipo').style.display = 'block'       
-        document.getElementById('campo-amortizable').style.display = 'none'
-    }
+    mostrar_campos()
     
     document.getElementById('boton-cancelaredicion').style.display = 'block' 
     document.getElementById('boton-guardar').textContent = 'Guardar cambios'
-    
+           
     activar_pestaña('añadir')
 }
 
@@ -780,6 +678,8 @@ function cancelar_edicionmovimiento() {
     modo_edicion = null
     document.getElementById('boton-guardar').textContent = 'Guardar movimiento'
     document.getElementById('boton-cancelaredicion').style.display = 'none'
+    limpiar_movimiento()
+    quitar_cliente()
     activar_pestaña('historial')
 }
 
@@ -825,7 +725,7 @@ function cancelar_formulariocliente() {
 function ocultar_formulariocliente() {
     document.getElementById('form-cliente').style.display = 'none'
     document.getElementById('boton-nuevocliente').style.display = 'block'
-    modo_edicioncliente = null
+    const modo_edicioncliente = null
     document.getElementById('boton-guardarcliente').textContent = 'Guardar cliente'
 
     //Limpiar formulario
@@ -901,7 +801,7 @@ function render_clientes() {
 
 //Buscador de clientes
 function filtrar_clientes() {
-    const busqueda = document.getElementById('inp-cliente-buscar').value
+    const busqueda = document.getElementById('inp-cliente-buscar').value.toLowerCase
     const desplegable = document.getElementById('desplegable-clientes')
 
     //Si el campo está vacio no se muestra el desplegable
@@ -974,7 +874,7 @@ function guardar_config() {
     config.cuota = parseFloat(document.getElementById('config-cuota').value) || 200
     config.irpf = parseInt(document.getElementById('config-irpf').value) || 15
     config.nuevo_autonomo = document.getElementById('config-nuevoautonomo').checked
-    config.cuota = parseInt(document.getElementById('config-añoinicio').value) || null
+    config.añoinicio = parseInt(document.getElementById('config-añoinicio').value) || null
     
     //Solo se guarda el año de activación si está activo y no estaba antes
     if (config.nuevo_autonomo && !config.año_activacion) {config.año_activacion = new Date().getFullYear()}
@@ -982,7 +882,20 @@ function guardar_config() {
 
     localStorage.setItem('config', JSON.stringify(config))
     alert('Configuración guardada')
-    render_resumen
+    render_resumen()
+}
+
+//Rellenar el valor de la cuota según lo puesto en la configuración
+document.getElementById('inp-subtipo').addEventListener('change', function() {
+    autocompletar_cuota()
+})
+
+function autocompletar_cuota() {
+    const subtipo = document.getElementById('inp-subtipo').value
+    const campo_base = document.getElementById('inp-base')
+    if (subtipo === 'cuota' && (!campo_base.value || parseFloat(campo_base.value) === 0)) {
+        campo_base.value = config.cuota
+    }
 }
 
 function cargar_config() {
@@ -1004,8 +917,10 @@ document.getElementById('config-nuevoautonomo').addEventListener('change', funct
 })
 
 function limpiar_datos() {
-    if (!confirm('¿Borrar todos los movimientos? Esta acción no se puede deshacer')) 
-        return movimientos = []
+    if (!confirm('¿Borrar todos los movimientos? Esta acción no se puede deshacer')) {
+        return
+    }
+        movimientos = []
         localStorage.setItem('movimientos', JSON.stringify(movimientos))
         render_historial()
         render_resumen()
