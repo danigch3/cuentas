@@ -22,6 +22,7 @@
       <button class="tab" data-tab="historial">Historial</button>
       <button class="tab" data-tab="clientes">Clientes</button>
       <button class="tab" data-tab="config">Config</button>
+      <div id="aviso"></div>
     </nav>
 
     <!--Sección resumen-->
@@ -218,8 +219,8 @@
 
         <!-- Botón guardar -->
         <div style="display: flex; gap: 8px;">
-          <button id="boton-guardar">Guardar movimiento</button>
-          <button id="boton-cancelaredicion" style="display: none;" onclick="cancelar_edicionmovimiento()">Cancelar</button>
+          <button class="boton-si" id="boton-guardar">Guardar movimiento</button>
+          <button class="boton-no" id="boton-cancelaredicion" style="display: none;" onclick="cancelar_edicionmovimiento()">Cancelar</button>
         </div>
       
       </div>
@@ -261,7 +262,7 @@
     <section id="tab-clientes" class="seccion">
       
       <!--Botón para abrir formulario-->
-      <button id="boton-nuevocliente" onclick="mostrar_formulariocliente()">+ Nuevo cliente</button>
+      <button class="boton-si" id="boton-nuevocliente" onclick="mostrar_formulariocliente()">+ Nuevo cliente</button>
 
       <!--Formulario, oculto por defecto-->
       <div class="tarjeta" id="form-cliente" style="display:none;">
@@ -296,8 +297,8 @@
            <input type="text" id="cliente-tlf"/>
          </div>
         <div style="display: flex; gap: 8px;">
-          <button id="boton-guardarcliente" onclick="guardar_cliente()">Guardar cliente</button>
-          <button class="boton-cancelar" onclick="cancelar_formulariocliente()">Cancelar</button>
+          <button class="boton-si" id="boton-guardarcliente" onclick="guardar_cliente()">Guardar cliente</button>
+          <button class="boton-no" onclick="cancelar_formulariocliente()">Cancelar</button>
         </div>
       </div>
 
@@ -338,16 +339,19 @@
         </div>
       </div>
 
-      <button id="boton-guardarconfig" onclick="guardar_config()">Guardar configuración</button>
+      <button class="boton-si"  id="boton-guardarconfig" onclick="guardar_config()">Guardar configuración</button>
       <div class="tarjeta" style="margin-top: 12px;">
         <div class="seccion-titulo">Datos</div>
-        <button class="boton-cancelar" onclick="limpiar_datos()">Borrar todos los datos</button>
+        <button class="boton-no" onclick="limpiar_datos()">Borrar todos los datos</button>
       </div>
 
     </section>
 
   </div>
 
+
+
+  
   <script src="app.js"></script>
 </body>
 </html>

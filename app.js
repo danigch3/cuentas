@@ -433,12 +433,12 @@ botones_operacion.forEach(function(boton){
         })
         boton.classList.add('activo')
 
-       mostrar_campos()
+       mostrar_campos(modo_edicion)
     })
 })
 
 //Mostrar campos según movimiento a añadir
-function mostrar_campos(){
+function mostrar_campos(modo_edicion){
     if (operacion_actual === 'ingreso') {
         document.getElementById('campo-irpf').style.display = 'block'
         document.getElementById('campo-iva').style.display = 'block'
@@ -446,7 +446,7 @@ function mostrar_campos(){
         document.getElementById('campo-cliente').style.display = 'block'
         document.getElementById('campo-subtipo').style.display = 'none'
         document.getElementById('campo-amortizable').style.display = 'none'
-        document.getElementById('inp-base').value = ''
+        if (modo_edicion === null) {document.getElementById('inp-base').value = ''}
 
     } else if (operacion_actual === 'gasto') {
         document.getElementById('campo-irpf').style.display = 'none'
@@ -455,7 +455,7 @@ function mostrar_campos(){
         document.getElementById('campo-cliente').style.display = 'block'
         document.getElementById('campo-subtipo').style.display = 'none'
         document.getElementById('campo-amortizable').style.display = 'block'
-        document.getElementById('inp-base').value = ''
+        if (modo_edicion === null) {document.getElementById('inp-base').value = ''}
 
     } else {
         document.getElementById('campo-irpf').style.display = 'none'
@@ -478,15 +478,15 @@ document.getElementById('boton-guardar').addEventListener('click',function(){
 
     // Comprobar campos están rellenos
     if (!concepto) {
-        alert('Escribe un concepto')
+        mostrar_aviso('Escribe un concepto', 'error')
         return
     }
-    if (!base || base <= 0) {
-        alert('Introduce una base válida')
+    if (!base || base < 0) {
+        mostrar_aviso('Introduce una base válida','error')
         return
     }
     if (!fecha) {
-        alert('Selecciona una fecha')
+        mostrar_aviso('Selecciona una fecha','error')
         return
     }
 
@@ -534,7 +534,7 @@ document.getElementById('boton-guardar').addEventListener('click',function(){
     limpiar_movimiento()
 
     // Avisar usuario
-    alert('Guardado')
+    mostrar_aviso('Guardado','exito')
     render_historial()
 })
 
@@ -645,7 +645,6 @@ function editar_movimiento(id) {
     } else {
         quitar_cliente()
     }
-
     document.getElementById('inp-iva').value      = mov.iva
     document.getElementById('inp-irpf').value     = mov.irpf
     document.getElementById('inp-amortizable').checked = mov.amortizable
@@ -666,7 +665,7 @@ function editar_movimiento(id) {
         if (b.dataset.operacion === mov.operacion) b.classList.add('activo')      
     })
 
-    mostrar_campos()
+    mostrar_campos(modo_edicion)
     
     document.getElementById('boton-cancelaredicion').style.display = 'block' 
     document.getElementById('boton-guardar').textContent = 'Guardar cambios'
@@ -687,7 +686,6 @@ function activar_amortizacion() {
     const checked = document.getElementById('inp-amortizable').checked
     document.getElementById('campos-amortizacion').style.display = checked ? 'block' : 'none'
 }
-
 
 //Clientes
 
@@ -737,8 +735,8 @@ function guardar_cliente() {
     const nombrecliente = document.getElementById('cliente-nombre').value.trim()
     const cif = document.getElementById('cliente-cif').value.trim()
 
-    if (!nombrecliente) {alert('El nombre es obligatorio'); return}
-    if (!cif) {alert('El CIF/NIF es obligatorio'); return}
+    if (!nombrecliente) {mostrar_aviso('El nombre es obligatorio','error'); return}
+    if (!cif) {mostrar_aviso('El CIF/NIF es obligatorio','error'); return}
 
     const cliente = {
         id: modo_edicioncliente || Date.now(),
@@ -881,7 +879,7 @@ function guardar_config() {
     if (!config.nuevo_autonomo) {config.año_activacion = null}
 
     localStorage.setItem('config', JSON.stringify(config))
-    alert('Configuración guardada')
+    mostrar_aviso('Configuración guardada','exito')
     render_resumen()
 }
 
@@ -924,7 +922,7 @@ function limpiar_datos() {
         localStorage.setItem('movimientos', JSON.stringify(movimientos))
         render_historial()
         render_resumen()
-        alert('Datos borrados')
+        mostrar_aviso('Datos borrados')
 }
 
 function get_reduccion(año) {
@@ -937,6 +935,23 @@ function get_reduccion(año) {
     if (años_desdeinicio === 2) return 0.7
     return 1
 }
+
+//Aviso emergente
+function mostrar_aviso(texto, tipo, duracion = 2000) {
+
+    const aviso = document.getElementById("aviso");
+
+    aviso.textContent = texto;
+    aviso.classList.add("visible",tipo);
+
+    clearTimeout(aviso.timeout);
+
+    aviso.timeout = setTimeout(function () {
+        aviso.classList.remove("visible");
+    }, duracion);
+}
+
+
 
 
 document.getElementById('sel-año').value  = new Date().getFullYear()

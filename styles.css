@@ -133,7 +133,7 @@ header {
     border-color: #1a1a1a;
 }
 
-#boton-guardar {
+.boton-si {
     width: 100%;
     padding: 12px;
     background-color: #1a1a1a;
@@ -145,11 +145,11 @@ header {
     margin-top: 4px;
 }
 
-#boton-guardar:active {
+.boton-si:active {
     opacity: 0.8;
 }
 
-#boton-cancelaredicion {
+.boton-no {
     width: 100%;
     padding: 12px;
     background-color: #ffffff;
@@ -306,43 +306,6 @@ header {
 .detalle-rojo { color: #e63946; }
 .detalle-verde { color: #2a9d5c; }
 
-/*Botón cliente nuevo*/
-#boton-nuevocliente {
-    width: 100%;
-    padding: 12px;
-    background-color: #1a1a1a;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    cursor: pointer;
-    margin-bottom: 12px;
-}
-
-/*Botón cancelar*/
-.boton-cancelar {
-    flex: 1;
-    padding: 12px;
-    background-color: transparent;
-    color: #888888;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 15px;
-    cursor: pointer;
-}
-
-/*Botón guardar cliente*/
-#boton-guardarcliente {
-    flex: 1;
-    padding: 12px;
-    background-color:  #1a1a1a;
-    color: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 15px;
-    cursor: pointer;
-}
-
 
 /*Desplegable buscador clientes*/
 .desplegable-clientes {
@@ -425,14 +388,38 @@ header {
     gap: 6px;
 }
 
-/*Botón guardar configuración*/
-#boton-guardarconfig {
+
+/*Aviso emergente*/
+#aviso {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    max-width: 400px;
     width: 100%;
-    padding: 12px;
-    background-color:  #1a1a1a;
-    color: #ffffff;
-    border: 1px solid #e0e0e0;
+    text-align: center;
+    transform: translateX(-50%) translateY(20px);
+    background: #ffffff;
+    color: #1a1a1a;
+    padding: 12px 18px;
     border-radius: 8px;
-    font-size: 15px;
-    cursor: pointer;
+    border: 2px solid #1a1a1a;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+}
+
+#aviso.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+#aviso.error {
+    color: #e63946;
+    border: 2px solid #e63946;
+}
+
+#aviso.exito {
+    color: #2a9d5c;
+    border: 2px solid #2a9d5c;
 }
