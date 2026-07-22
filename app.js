@@ -801,7 +801,7 @@ function render_clientes() {
 
 //Buscador de clientes
 function filtrar_clientes() {
-    const busqueda = document.getElementById('inp-cliente-buscar').value.toLowerCase
+    const busqueda = document.getElementById('inp-cliente-buscar').value
     const desplegable = document.getElementById('desplegable-clientes')
 
     //Si el campo está vacio no se muestra el desplegable
